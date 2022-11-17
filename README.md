@@ -38,13 +38,15 @@ The next step is to write a category method inside of our UIViewController+Track
 @objc dynamic func _tracked_viewWillAppear(_ animated: Bool) {
     NSLog("Enter screen: \(type(of: self))")
     _tracked_viewWillAppear(animated)
-}```
+}
+```
 # Objective-C
 ```ruby
 - (void) _tracked_viewWillAppear:(BOOL)animated {
     NSLog(@"Enter screen: %@", [self class]);
     [self _tracked_viewWillAppear:animated];
-}```
+}
+```
 Note: It may seem this method will run infinitely, but it won’t. Because at runtime _tracked_viewWillAppear: selector would point on viewWillAppear. Then we have an NSLog to log our command. In short, when the view is about to be displayed, the program prints a log, for example, Enter screen: SampleViewController and does what it is supposed to do.
 
 Now for any viewWillAppear call on UIViewController from our code or from a framework, our swizzled method will be executed.
@@ -121,7 +123,7 @@ static func swizzle() {
             method_exchangeImplementations(originalMethod!, swizzledMethod!);
         }()
     }
-    ```
+```
 Note: Unlike in Swift3x, in swift 4, we cannot write this swizzling in the initialise method, so we need to write the one static method and we can call it in AppDelegate didFinishLaunchingWithOptions method.
 
 There are two cases that need to be handled:
@@ -205,7 +207,8 @@ extension UIViewController {
             	(originalMethod!, swizzledMethod!);
         }()
     }
-}```
+}
+```
 
 In AppDelegate we need to call this method in Swift
 
