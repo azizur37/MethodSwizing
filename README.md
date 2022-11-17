@@ -33,18 +33,18 @@ Write the additional functionality
 
 The next step is to write a category method inside of our UIViewController+Tracking class that includes the functionality we wish to add tracking (in our example). To do this we’ll write a method called _tracked_viewWillAppear.
 
-Swift
-
+# Swift
+``ruby
 @objc dynamic func _tracked_viewWillAppear(_ animated: Bool) {
     NSLog("Enter screen: \(type(of: self))")
     _tracked_viewWillAppear(animated)
-}
-Objective-C
-
+}``
+# Objective-C
+``ruby
 - (void) _tracked_viewWillAppear:(BOOL)animated {
     NSLog(@"Enter screen: %@", [self class]);
     [self _tracked_viewWillAppear:animated];
-}
+}``
 Note: It may seem this method will run infinitely, but it won’t. Because at runtime _tracked_viewWillAppear: selector would point on viewWillAppear. Then we have an NSLog to log our command. In short, when the view is about to be displayed, the program prints a log, for example, Enter screen: SampleViewController and does what it is supposed to do.
 
 Now for any viewWillAppear call on UIViewController from our code or from a framework, our swizzled method will be executed.
@@ -53,8 +53,8 @@ Swizzle the methods
 
 The last step is to write the code that actually swaps the memory locations that the two selectors correspond to. This is typically done in the load class method and wrapped in a dispatch_once. In our UIViewController+Tracking class, we’ll add the following.
 
-Objective-C
-
+# Objective-C
+``ruby
 #import <objc/runtime.h>
 #import "UIViewController+Tracking.h"
 
@@ -100,8 +100,9 @@ Objective-C
     [self _tracked_viewWillAppear:animated];
 }
 @end
-Swift
-
+``
+#Swift
+``ruby
 static func swizzle() {
         //Make sure This isn't a subclass of UIViewController,
         //So that It applies to all UIViewController childs
@@ -120,6 +121,7 @@ static func swizzle() {
             method_exchangeImplementations(originalMethod!, swizzledMethod!);
         }()
     }
+    ``
 Note: Unlike in Swift3x, in swift 4, we cannot write this swizzling in the initialise method, so we need to write the one static method and we can call it in AppDelegate didFinishLaunchingWithOptions method.
 
 There are two cases that need to be handled:
@@ -128,8 +130,8 @@ Need to check whether the method we're swizzling is actually defined in a superc
 If the method is defined in the target class, then class_addMethod will fail so we need to use method_exchangeImplementations to just swap the new and old versions.
 This code swizzles the method implementation for viewWillAppear with the implementation for _tracked_viewWillAppear. To get this to compile, you need to import objc/runtime.h. Putting it all together, our UIViewController+Tracking class looks like this:
 
-Objective-C
-
+# Objective-C
+``ruby
 #import <objc/runtime.h>
 #import "UIViewController+Tracking.h"
 
@@ -174,8 +176,9 @@ Objective-C
     [self _tracked_viewWillAppear:animated];
 }
 @end
-Swift
-
+``
+#Swift
+``ruby
 import UIKit
 extension UIViewController {
     @objc dynamic func _tracked_viewWillAppear(_ animated: Bool) {
@@ -202,11 +205,11 @@ extension UIViewController {
             	(originalMethod!, swizzledMethod!);
         }()
     }
-}
+}``
 
 In AppDelegate we need to call this method in Swift
 
-
+``rubby
 func application( _ application: UIApplication, 
 			didFinishLaunchingWithOptions 
 			launchOptions: [UIApplication.LaunchOptionsKey: Any]?
@@ -216,3 +219,4 @@ func application( _ application: UIApplication,
                 // application launch.
 		   	 return true
 }
+``
