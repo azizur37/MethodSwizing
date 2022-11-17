@@ -12,6 +12,7 @@ import UIKit
 extension UIViewController{
     @objc dynamic func _tracked_viewWillAppear(_ animated : Bool){
         NSLog("Enter Screen : \(type(of: self))")
+        //this will not cause infinity loop
         _tracked_viewWillAppear(animated)
     }
     static func swizzle(){
@@ -24,11 +25,15 @@ extension UIViewController{
             let originalMethod = class_getInstanceMethod(self, originalSelector)
             let swizzledMethod = class_getInstanceMethod(self, swizzledSelector)
             guard let originalMethod = originalMethod, let swizzledMethod = swizzledMethod else{
-                //needs to check originalMethod and swizzledMethod through `class_addMethod` method
-                // If it returns true, then we can use class_replaceMethod to replace with the superclass
                 return
             }
-            method_exchangeImplementations(originalMethod, swizzledMethod)
+            let isMethodeExist = !class_addMethod(self, originalSelector, method_getImplementation(swizzledMethod), method_getTypeEncoding(swizzledMethod))
+            if isMethodeExist{
+                method_exchangeImplementations(originalMethod, swizzledMethod)
+            }else{
+                class_replaceMethod(self, swizzledSelector, method_getImplementation(originalMethod), method_getTypeEncoding(originalMethod))
+            }
+            
         }()
         
     }
